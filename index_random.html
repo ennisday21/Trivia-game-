@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Trivia Challenge</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; color: #333; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #333; margin-bottom: 5px; }
+        #category-selection { margin-bottom: 20px; text-align: center; }
+        button { background-color: #4CAF50; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 25px; cursor: pointer; margin: 5px; transition: background 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:hover { background-color: #45a049; }
+        #quiz-area { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); width: 100%; max-width: 600px; box-sizing: border-box; }
+        .option-btn { display: block; width: 100%; background-color: #e8f5e9; color: #333; margin-bottom: 15px; text-align: center; padding: 15px; border-radius: 10px; font-size: 18px; cursor: pointer; transition: background 0.2s; border: 1px solid #c8e6c9; }
+        .option-btn:hover { background-color: #c8e6c9; }
+        #score-board, #lives { font-size: 20px; font-weight: bold; margin: 10px 0; color: #333; }
+        #lives { color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <h1>Ultimate Trivia Challenge</h1>
+
+    <div id="category-selection">
+        <h2>Select a Category</h2>
+        <button onclick="selectCategory('survival')">Survival Mode</button>
+        <button onclick="selectCategory('medical_pro')">Medical Pro</button>
+        <button onclick="selectCategory('culinary_pro')">Culinary Pro</button>
+    </div>
+
+    <div id="quiz-area" style="display: none;">
+        <div id="lives"></div>
+        <h2 id="question">Loading...</h2>
+        <div id="options-container"></div>
+        <div id="score">Score: 0</div>
+    </div>
+
+    <div id="score-board">
+        High Score: <span id="high-score">0</span>
+    </div>
+
+<script>
+const medicalProQuestions = [
+    { q: "Which chamber of the heart pumps oxygenated blood to the systemic circulation?", options: ["Left ventricle", "Right ventricle", "Left atrium", "Right atrium"], correct_answer: "Left ventricle" },
+    { q: "What is the normal resting heart rate range for a healthy adult?", options: ["60–100 bpm", "40–60 bpm", "100–120 bpm", "120–140 bpm"], correct_answer: "60–100 bpm" },
+    { q: "Which cranial nerve is primarily responsible for the sense of smell?", options: ["Olfactory nerve (CN I)", "Optic nerve (CN II)", "Vagus nerve (CN X)", "Trigeminal nerve (CN V)"], correct_answer: "Olfactory nerve (CN I)" },
+    { q: "What condition is characterized by an acute, life-threatening allergic reaction?", options: ["Anaphylaxis", "Urticaria", "Angioedema", "Asthma"], correct_answer: "Anaphylaxis" },
+    { q: "Which organ produces insulin and glucagon?", options: ["Pancreas", "Liver", "Gallbladder", "Spleen"], correct_answer: "Pancreas" },
+    { q: "What does the medical abbreviation 'PRN' stand for?", options: ["As needed", "Twice daily", "Before meals", "At bedtime"], correct_answer: "As needed" },
+    { q: "Which blood type is considered the universal red blood cell donor?", options: ["O negative", "AB positive", "O positive", "A negative"], correct_answer: "O negative" },
+    { q: "What is the medical term for high blood pressure?", options: ["Hypertension", "Hypotension", "Tachycardia", "Arrhythmia"], correct_answer: "Hypertension" },
+    { q: "Which bone is the longest and strongest in the human body?", options: ["Femur", "Tibia", "Humerus", "Fibula"], correct_answer: "Femur" },
+    { q: "What is the primary function of hemoglobin in red blood cells?", options: ["Oxygen transport", "Immune defense", "Blood clotting", "Waste removal"], correct_answer: "Oxygen transport" }
+];
+
+const culinaryProQuestions = [
+    { q: "What French culinary term means 'everything in its place'?", options: ["Mise en place", "Sous vide", "Bain-marie", "Sauté"], correct_answer: "Mise en place" },
+    { q: "Which primal cut of beef comes from the rib section and is known for its rich marbling?", options: ["Ribeye", "Sirloin", "Tenderloin", "Chuck"], correct_answer: "Ribeye" },
+    { q: "What is the process of browning meat at high temperatures before slow cooking?", options: ["Searing", "Sweating", "Poaching", "Blanching"], correct_answer: "Searing" },
+    { q: "Which thickening agent is made of equal parts cooked flour and fat?", options: ["Roux", "Slurry", "Beurre manié", "Cornstarch"], correct_answer: "Roux" },
+    { q: "What temperature range is known as the 'Danger Zone' for bacterial growth in food?", options: ["40°F - 140°F", "32°F - 50°F", "150°F - 212°F", "0°F - 32°F"], correct_answer: "40°F - 140°F" },
+    { q: "Which mother sauce is made from a white roux and milk?", options: ["Béchamel", "Velouté", "Espagnole", "Hollandaise"], correct_answer: "Béchamel" },
+    { q: "What is the term for cooking food submerged in oil at high temperatures?", options: ["Deep frying", "Pan frying", "Sweating", "Sautéing"], correct_answer: "Deep frying" },
+    { q: "Which herb is the primary ingredient in traditional pesto Genovese?", options: ["Basil", "Cilantro", "Parsley", "Mint"], correct_answer: "Basil" },
+    { q: "What cooking method combines initial searing with long, slow cooking in liquid?", options: ["Braising", "Poaching", "Steaming", "Roasting"], correct_answer: "Braising" },
+    { q: "Which type of rice is traditionally used to make authentic risotto?", options: ["Arborio", "Basmati", "Jasmine", "Carnaroli"], correct_answer: "Arborio" }
+];
+
+let questions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let isSurvivalMode = false;
+let lives = 0;
+let mistakes = 0;
+const MAX_MISTAKES = 3;
+
+async function selectCategory(category) {
+    isSurvivalMode = (category === 'survival');
+    score = 0;
+    mistakes = 0;
+    lives = isSurvivalMode ? MAX_MISTAKES : 0;
+
+    document.getElementById('category-selection').style.display = 'none';
+    document.getElementById('quiz-area').style.display = 'block';
+
+    const livesEl = document.getElementById('lives');
+    if (isSurvivalMode) {
+        livesEl.style.display = 'block';
+        updateLivesDisplay();
+    } else {
+        livesEl.style.display = 'none';
+    }
+
+    updateScoreDisplay();
+
+    if (category === 'medical_pro') {
+        questions = [...medicalProQuestions].sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        showQuestion();
+    } else if (category === 'culinary_pro') {
+        questions = [...culinaryProQuestions].sort(() => Math.random() - 0.5);
+        currentQuestionIndex = 0;
+        showQuestion();
+    } else {
+        fetchQuestions(category);
+    }
+}
+
+async function fetchQuestions(apiCategory) {
+    document.getElementById('question').innerText = "Loading...";
+    document.getElementById('options-container').innerHTML = '';
+    const queryCategory = apiCategory === 'survival' ? '9' : apiCategory;
+    const limit = apiCategory === 'survival' ? '20' : '10';
+
+    try {
+        const response = await fetch(`https://opentdb.com/api.php?amount=${limit}&category=${queryCategory}&type=multiple`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+
+        questions = data.results.map(item => ({
+            q: item.question,
+            correct: item.correct_answer,
+            options: [...item.incorrect_answers, item.correct_answer].sort(() => Math.random() - 0.5)
+        }));
+        currentQuestionIndex = 0;
+        showQuestion();
+    } catch (error) {
+        document.getElementById('question').innerText = "Failed to load questions. Please check your API key and try again.";
+    }
+}
+
+function showQuestion() {
+    if (currentQuestionIndex >= questions.length) {
+        endGame();
+        return;
+    }
+
+    const qData = questions[currentQuestionIndex];
+    document.getElementById('question').innerHTML = qData.q;
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    qData.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt, qData.correct);
+        container.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected, correct) {
+    if (selected === correct) {
+        score += 10;
+        updateScoreDisplay();
+    } else {
+        if (isSurvivalMode) {
+            mistakes++;
+            lives = MAX_MISTAKES - mistakes;
+            updateLivesDisplay();
+        }
+    }
+
+    if (isSurvivalMode && lives <= 0) {
+        endGame();
+    } else {
+        currentQuestionIndex++;
+        showQuestion();
+    }
+}
+
+function updateScoreDisplay() {
+    document.getElementById('score').innerText = `Score: ${score}`;
+}
+
+function updateLivesDisplay() {
+    document.getElementById('lives').innerHTML = `Lives: ${lives}`;
+}
+
+function endGame() {
+    const title = isSurvivalMode ? "Game Over! You Ran Out of Lives." : "Quiz Complete!";
+    document.getElementById('quiz-area').innerHTML = `
+        <h2>${title}</h2>
+        <p>Final Score: ${score}</p>
+        <button onclick="resetGame()">Play Again</button>
+    `;
+    updateHighScoreDisplay();
+}
+
+function resetGame() {
+    document.getElementById('quiz-area').innerHTML = `
+        <div id="lives"></div>
+        <h2 id="question">Loading...</h2>
+        <div id="options-container"></div>
+        <div id="score">Score: 0</div>
+    `;
+    document.getElementById('quiz-area').style.display = 'none';
+    document.getElementById('category-selection').style.display = 'block';
+    updateHighScoreDisplay();
+}
+
+function updateHighScoreDisplay() {
+    let highScore = localStorage.getItem('highScore') || 0;
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('highScore', highScore);
+    }
+    document.getElementById('high-score').innerText = highScore;
+}
+</script>
+</body>
+</html>
