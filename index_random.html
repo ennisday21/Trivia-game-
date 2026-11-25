@@ -11,7 +11,7 @@
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyB9bFcgwo49IVijAtAt",
+            apiKey: "AIzaSyB9bFcgwo49IVijAtAtqRhqW95eqEBPad8",
             authDomain: "dj-and-laura-trivia.firebaseapp.com",
             projectId: "dj-and-laura-trivia",
             storageBucket: "dj-and-laura-trivia.firebasestorage.app",
@@ -30,8 +30,10 @@
                     score: score,
                     timestamp: new Date()
                 });
+                return true;
             } catch (e) {
                 console.error("Error adding score: ", e);
+                return false;
             }
         }
 
@@ -42,11 +44,26 @@
                 const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
                 const querySnapshot = await getDocs(q);
                 scoresList.innerHTML = '';
+
+                if (querySnapshot.empty) {
+                    scoresList.innerHTML = '<li>No scores yet. Be the first!</li>';
+                    return;
+                }
+
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const li = document.createElement('li');
                     li.className = 'leaderboard-item';
-                    li.innerHTML = `<span>${data.name}</span><span class="global-score-badge">${data.score} pts</span>`;
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = data.name || 'Anonymous';
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.className = 'global-score-badge';
+                    scoreSpan.textContent = `${data.score ?? 0} pts`;
+
+                    li.appendChild(nameSpan);
+                    li.appendChild(scoreSpan);
                     scoresList.appendChild(li);
                 });
             } catch (e) {
@@ -73,15 +90,15 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
-        header { background-color: var(--bg-card); display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 2px solid var(--accent-purple); flex-wrap: wrap; gap: 1rem; }
+        header { background-color: var(--bg-card); display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 2px solid var(--accent-purple); flex-wrap: wrap; gap: 1rem; }
         .nav-brand { font-size: 1.5rem; font-weight: bold; color: var(--accent-purple); }
-        .nav-controls { display: flex; gap: 1rem; align-items: center; }
-        button { background-color: var(--accent-purple); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
-        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
+        .nav-controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        button { background-color: var(--accent-purple); color: white; border: none; padding: 0.8rem 1.25rem; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        button:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(0); }
         button:disabled { background-color: #64748b; cursor: not-allowed; }
 
-        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
         .card { background-color: var(--bg-card); border-radius: 16px; padding: 2rem; max-width: 800px; width: 100%; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); border: 1px solid #334155; }
 
         .hidden { display: none !important; }
@@ -97,12 +114,12 @@
 
         /* Game Elements */
         #game-container { display: flex; flex-direction: column; gap: 1.5rem; }
-        #game-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #94a3b8; padding-bottom: 0.5rem; border-bottom: 1px solid #334155; }
+        #game-info { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-weight: bold; font-size: 1.1rem; color: #94a3b8; padding-bottom: 0.5rem; border-bottom: 1px solid #334155; }
         #question-area { display: flex; flex-direction: column; gap: 1rem; }
-        #question-text { font-size: 1.4rem; line-height: 1.5; min-height: 3em; display: flex; align-items: center; }
+        #question-text { font-size: 1.35rem; line-height: 1.5; min-height: 3em; display: flex; align-items: center; }
         #answer-options { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; list-style: none; }
         @media (max-width: 600px) { #answer-options { grid-template-columns: 1fr; } }
-        .option-btn { background-color: #334155; padding: 1.2rem; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 1.1rem; border: 1px solid #475569; transition: all 0.2s; width: 100%; }
+        .option-btn { background-color: #334155; padding: 1.2rem; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 1.05rem; border: 1px solid #475569; transition: all 0.2s; width: 100%; }
         .option-btn:hover:not(:disabled) { background-color: #475569; border-color: var(--accent-blue); }
         .option-btn.correct { background-color: var(--accent-green) !important; border-color: var(--accent-green); color: white; }
         .option-btn.wrong { background-color: var(--accent-red) !important; border-color: var(--accent-red); color: white; }
@@ -117,16 +134,16 @@
         /* Milestone Overlay */
         #milestone-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
         .milestone-content { background: var(--bg-card); padding: 2.5rem; border-radius: 16px; max-width: 600px; width: 100%; text-align: center; border: 2px solid var(--accent-gold); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
-        .milestone-content h2 { color: var(--accent-gold); font-size: 2rem; margin-bottom: 1rem; }
+        .milestone-content h2 { color: var(--accent-gold); font-size: 1.8rem; margin-bottom: 1rem; }
         .milestone-options { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
-        .milestone-btn { padding: 1rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; transition: transform 0.1s; }
+        .milestone-btn { padding: 1rem; font-size: 1.05rem; border-radius: 8px; cursor: pointer; border: none; font-weight: bold; transition: transform 0.1s; }
         .milestone-btn:active { transform: scale(0.98); }
         .btn-safe { background-color: var(--accent-blue); color: white; }
         .btn-challenge { background-color: var(--accent-gold); color: #0f172a; }
 
         /* Results Screen */
         #results-screen { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; width: 100%; }
-        #score-summary { font-size: 1.2rem; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
+        #score-summary { font-size: 1.2rem; display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
         .stat-box { background: #334155; padding: 1rem 2rem; border-radius: 12px; min-width: 140px; }
         .stat-value { font-size: 2.5rem; font-weight: bold; color: var(--accent-purple); display: block; }
 
@@ -134,13 +151,13 @@
         .leaderboard-container { width: 100%; max-width: 500px; background: #334155; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; text-align: left; }
         .leaderboard-container h3 { color: var(--accent-gold); text-align: center; margin-bottom: 1rem; }
         #global-scores-list { list-style: none; }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #475569; font-weight: bold; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #475569; font-weight: bold; gap: 1rem; }
         .leaderboard-item:last-child { border-bottom: none; }
-        .global-score-badge { color: var(--accent-purple); }
-        
-        /* Responsive Leaderboard Container */
-        .chart-wrapper { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 10px 0; display: flex; justify-content: center; }
-        #chart_div { width: 100%; min-width: 500px; height: 300px; background: transparent; }
+        .global-score-badge { color: var(--accent-purple); white-space: nowrap; }
+
+        /* Responsive Chart Container */
+        .chart-wrapper { width: 100%; overflow: hidden; padding: 10px 0; display: flex; justify-content: center; }
+        #chart_div { width: 100%; height: 280px; background: transparent; }
     </style>
 </head>
 <body>
@@ -158,11 +175,11 @@
         <!-- Dashboard / Mode Selection -->
         <section id="dashboard" class="card">
             <h1>Select Game Mode</h1>
-            <p>Choose your trivia experience. Each mode features dynamic live questions from The Trivia API v2.</p>
+            <p style="margin-top: 0.5rem; color: #cbd5e1;">Choose your trivia experience. Each mode features dynamic live questions from The Trivia API v2.</p>
             <div class="mode-select-grid">
                 <div class="mode-card" id="mode-arcade-card">
                     <h3>Endless Arcade</h3>
-                    <p>Category-specific trivia mastery. Test your knowledge across Science, History, Geography, Pop Culture, & TV/Culinary, or tackle mixed topical topics.</p>
+                    <p>No life limit—play as long as you want across Science, History, Pop Culture, TV & Culinary, or Mixed Topics, then save your score anytime.</p>
                     <button id="select-arcade-btn">Select Arcade</button>
                 </div>
                 <div class="mode-card active" id="mode-survival-card">
@@ -173,12 +190,12 @@
             </div>
         </section>
 
-        <!-- Configuration Screen (Survival Mode) -->
+        <!-- Configuration Screen -->
         <section id="config-screen" class="card hidden">
-            <h2>Configure Survival Run</h2>
+            <h2 id="config-title">Configure Survival Run</h2>
             <div style="margin: 1.5rem 0; display: flex; flex-direction: column; gap: 1rem;">
                 <div>
-                    <label style="display:block; margin-bottom:0.5rem; font-weight:bold;">Select Category:</label>
+                    <label for="category-select" style="display:block; margin-bottom:0.5rem; font-weight:bold;">Select Category:</label>
                     <select id="category-select" style="width:100%; padding:0.8rem; border-radius:8px; background:#334155; color:white; border:1px solid #475569; font-size:1rem;">
                         <option value="random">Random / Mixed Topics</option>
                         <option value="science">Science & Technology</option>
@@ -188,10 +205,10 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display:block; margin-bottom:0.5rem; font-weight:bold;">Select Difficulty Tier:</label>
+                    <label for="difficulty-select" style="display:block; margin-bottom:0.5rem; font-weight:bold;">Select Difficulty Tier:</label>
                     <select id="difficulty-select" style="width:100%; padding:0.8rem; border-radius:8px; background:#334155; color:white; border:1px solid #475569; font-size:1rem;">
                         <option value="standard">Standard Scaling (Easy -> Hard)</option>
-                        <option value="special">🔥 SPECIAL OPTION (Q1-5 Easy, Q6-9 Medium, Q10+ Milestone)</option>
+                        <option value="special" id="special-tier-option">🔥 SPECIAL OPTION (Q1-5 Easy, Q6-9 Medium, Q10+ Milestone)</option>
                         <option value="easy">Easy Only</option>
                         <option value="medium">Medium Only</option>
                         <option value="hard">Hard Only</option>
@@ -206,7 +223,7 @@
             <div id="game-info">
                 <span>Score: <span id="score-display">0</span></span>
                 <span>Lives: <span id="lives-display">3</span></span>
-                <span>Q#: <span id="question-count-display">1/10</span></span>
+                <span>Q#: <span id="question-count-display">1/10+</span></span>
             </div>
 
             <div id="difficulty-indicator">
@@ -215,14 +232,13 @@
 
             <div id="question-area">
                 <h2 id="question-text">Loading Question...</h2>
-                <ul id="answer-options">
-                    <!-- Options injected by JS -->
-                </ul>
+                <ul id="answer-options"></ul>
                 <p id="feedback-text" style="font-weight: bold; text-align: center; min-height: 1.5em;"></p>
             </div>
 
-            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
                 <button id="next-question-btn" disabled style="flex:1;">Next Question</button>
+                <button id="end-run-btn" class="hidden" style="background-color: var(--accent-gold); color: #0f172a;">End Run & Save Score</button>
             </div>
         </section>
 
@@ -278,7 +294,7 @@
         let currentMode = 'survival'; // 'arcade' or 'survival'
         let currentCategory = 'random';
         let currentTierMode = 'special'; // 'standard', 'special', 'easy', 'medium', 'hard'
-        
+
         let score = 0;
         let lives = 3;
         let questionCount = 0;
@@ -286,7 +302,9 @@
         let maxStreak = 0;
         let currentTriviaQuestions = [];
         let activeQuestionIndex = 0;
-        let scoreHistory = [['Question', 'Score']];
+        let cachedDifficulty = null;
+        let currentQuestionDifficulty = 'easy';
+        let scoreHistory = [['Question', 'Score', { role: 'style' }]];
         let awaitingAnswer = true;
 
         // Challenge State
@@ -294,13 +312,13 @@
         let gauntletTargetCount = 0;
         let gauntletCurrentCount = 0;
 
-        // API Configuration Mapping
+        // Valid The Trivia API v2 Category Slugs
         const CATEGORY_MAP = {
-            'science': 'science_and_technology',
-            'history': 'history_and_geography',
-            'pop-culture': 'society_and_culture',
-            'tv-culinary': 'film_and_tv',
-            'random': 'general_knowledge'
+            'science': 'science',
+            'history': 'history,geography',
+            'pop-culture': 'society_and_culture,arts_and_literature',
+            'tv-culinary': 'film_and_tv,food_and_drink',
+            'random': ''
         };
 
         const DIFF_MAP = {
@@ -312,6 +330,9 @@
         // DOM Elements
         const dashboard = document.getElementById('dashboard');
         const configScreen = document.getElementById('config-screen');
+        const configTitle = document.getElementById('config-title');
+        const specialTierOption = document.getElementById('special-tier-option');
+        const difficultySelect = document.getElementById('difficulty-select');
         const gameContainer = document.getElementById('game-container');
         const resultsScreen = document.getElementById('results-screen');
         const milestoneModal = document.getElementById('milestone-modal');
@@ -325,62 +346,59 @@
         const answerOptions = document.getElementById('answer-options');
         const feedbackText = document.getElementById('feedback-text');
         const nextBtn = document.getElementById('next-question-btn');
+        const endRunBtn = document.getElementById('end-run-btn');
         const homeBtn = document.getElementById('home-btn');
         const leaderboardBtn = document.getElementById('leaderboard-btn');
         const submitScoreBtn = document.getElementById('submit-score-btn');
         const playerNameInput = document.getElementById('player-name-input');
 
         // Mode Selection Handler
-        function selectMode(selectedMode, event) {
+        function selectMode(selectedMode) {
             currentMode = selectedMode;
             document.querySelectorAll('.mode-card').forEach(card => card.classList.remove('active'));
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            } else if (selectedMode === 'arcade') {
-                document.getElementById('mode-arcade-card').classList.add('active');
-            } else {
-                document.getElementById('mode-survival-card').classList.add('active');
-            }
+            document.getElementById(selectedMode === 'arcade' ? 'mode-arcade-card' : 'mode-survival-card').classList.add('active');
 
             dashboard.classList.add('hidden');
             resultsScreen.classList.add('hidden');
             gameContainer.classList.add('hidden');
+            configScreen.classList.remove('hidden');
+            homeBtn.classList.remove('hidden');
 
-            if (currentMode === 'survival') {
-                configScreen.classList.remove('hidden');
-                homeBtn.classList.remove('hidden');
+            if (currentMode === 'arcade') {
+                configTitle.textContent = 'Configure Endless Arcade';
+                specialTierOption.disabled = true;
+                specialTierOption.hidden = true;
+                if (difficultySelect.value === 'special') {
+                    difficultySelect.value = 'standard';
+                }
             } else {
-                // Arcade Mode defaults
-                configScreen.classList.add('hidden');
-                homeBtn.classList.remove('hidden');
-                initGameSession();
+                configTitle.textContent = 'Configure Survival Run';
+                specialTierOption.disabled = false;
+                specialTierOption.hidden = false;
             }
         }
 
         document.getElementById('select-arcade-btn').addEventListener('click', (e) => {
-            selectMode('arcade', e);
             e.stopPropagation();
+            selectMode('arcade');
         });
-        document.getElementById('mode-arcade-card').addEventListener('click', (e) => {
-            selectMode('arcade', e);
-        });
+        document.getElementById('mode-arcade-card').addEventListener('click', () => selectMode('arcade'));
 
         document.getElementById('select-survival-btn').addEventListener('click', (e) => {
-            selectMode('survival', e);
             e.stopPropagation();
+            selectMode('survival');
         });
-        document.getElementById('mode-survival-card').addEventListener('click', (e) => {
-            selectMode('survival', e);
-        });
+        document.getElementById('mode-survival-card').addEventListener('click', () => selectMode('survival'));
 
         document.getElementById('start-run-btn').addEventListener('click', () => {
             currentCategory = document.getElementById('category-select').value;
-            currentTierMode = document.getElementById('difficulty-select').value;
+            currentTierMode = difficultySelect.value;
             configScreen.classList.add('hidden');
             initGameSession();
         });
 
         function resetToDashboard() {
+            milestoneModal.classList.add('hidden');
             resultsScreen.classList.add('hidden');
             gameContainer.classList.add('hidden');
             configScreen.classList.add('hidden');
@@ -390,22 +408,24 @@
 
         homeBtn.addEventListener('click', resetToDashboard);
         document.getElementById('dashboard-return-btn').addEventListener('click', resetToDashboard);
+        endRunBtn.addEventListener('click', endGameSession);
 
         // Persistent Leaderboard Button Handler
         leaderboardBtn.addEventListener('click', () => {
+            milestoneModal.classList.add('hidden');
             dashboard.classList.add('hidden');
             configScreen.classList.add('hidden');
             gameContainer.classList.add('hidden');
             resultsScreen.classList.remove('hidden');
             homeBtn.classList.remove('hidden');
-            
+
             document.getElementById('final-score').textContent = score;
             document.getElementById('final-streak').textContent = maxStreak;
-            
+
             if (typeof window.loadLeaderboard === 'function') {
                 window.loadLeaderboard();
             }
-            
+
             google.charts.load('current', {'packages':['corechart']});
             google.charts.setOnLoadCallback(drawChart);
         });
@@ -416,10 +436,15 @@
             if (typeof window.submitScore === 'function') {
                 submitScoreBtn.disabled = true;
                 submitScoreBtn.textContent = "Submitting...";
-                await window.submitScore(name, score);
-                submitScoreBtn.textContent = "✓ Submitted!";
-                if (typeof window.loadLeaderboard === 'function') {
-                    window.loadLeaderboard();
+                const ok = await window.submitScore(name, score);
+                if (ok) {
+                    submitScoreBtn.textContent = "✓ Submitted!";
+                    if (typeof window.loadLeaderboard === 'function') {
+                        window.loadLeaderboard();
+                    }
+                } else {
+                    submitScoreBtn.disabled = false;
+                    submitScoreBtn.textContent = "Retry Submit";
                 }
             } else {
                 alert("Global leaderboard functionality is not initialized.");
@@ -429,24 +454,33 @@
         // Initialize Game Session
         function initGameSession() {
             score = 0;
-            lives = 3;
+            lives = currentMode === 'arcade' ? Infinity : 3;
             questionCount = 0;
             currentStreak = 0;
             maxStreak = 0;
+            currentTriviaQuestions = [];
             activeQuestionIndex = 0;
+            cachedDifficulty = null;
             scoreHistory = [['Question', 'Score', { role: 'style' }]];
             inGauntlet = false;
             gauntletTargetCount = 0;
             gauntletCurrentCount = 0;
+
             submitScoreBtn.disabled = false;
             submitScoreBtn.textContent = "Submit Score Globally";
 
             scoreDisplay.textContent = score;
-            livesDisplay.textContent = lives;
+            livesDisplay.textContent = currentMode === 'arcade' ? '∞' : lives;
             streakCounter.textContent = `🔥 Streak: ${currentStreak}`;
-            
+
+            if (currentMode === 'arcade') {
+                endRunBtn.classList.remove('hidden');
+            } else {
+                endRunBtn.classList.add('hidden');
+            }
+
             gameContainer.classList.remove('hidden');
-            fetchNextBatchAndLoadQuestion();
+            advanceToNextQuestion();
         }
 
         // Determine target difficulty based on current mode and question count
@@ -456,8 +490,8 @@
             if (currentTierMode === 'medium') return 'medium';
             if (currentTierMode === 'hard') return 'hard';
 
-            // Special Option Logic (Overrides Standard)
-            if (currentTierMode === 'special') {
+            // Special Option Logic (Survival only)
+            if (currentMode === 'survival' && currentTierMode === 'special') {
                 const qNum = (questionCount - 1) % 10 + 1;
                 if (qNum <= 5) return 'easy';
                 if (qNum <= 9) return 'medium';
@@ -473,9 +507,9 @@
         // Fetch questions from external API
         async function fetchQuestions(difficulty, limit = 5) {
             let apiUrl = 'https://the-trivia-api.com/v2/questions';
-            let params = [];
-            
-            if (currentCategory !== 'random') {
+            const params = [];
+
+            if (currentCategory !== 'random' && CATEGORY_MAP[currentCategory]) {
                 params.push(`categories=${CATEGORY_MAP[currentCategory]}`);
             }
             if (difficulty !== 'milestone_trigger' && DIFF_MAP[difficulty]) {
@@ -489,8 +523,9 @@
 
             try {
                 const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
+                if (!Array.isArray(data) || data.length === 0) throw new Error('Empty API response');
                 return data;
             } catch (error) {
                 console.warn('API fetch failed, using offline fallback', error);
@@ -500,19 +535,20 @@
 
         // Offline Fallback Data Generator
         function getOfflineFallbackQuestions(difficulty, limit) {
-            const topics = ['Science', 'History', 'Pop Culture', 'Geography', 'Art'];
+            const topics = ['Science', 'History', 'Pop Culture', 'Geography', 'Culinary'];
             const diffLabel = difficulty.toUpperCase();
             return Array.from({ length: limit }, (_, i) => ({
-                question: { text: `[OFFLINE] What is a primary fact related to ${topics[i % topics.length]} (${diffLabel} Tier)?` },
+                question: { text: `[OFFLINE] Sample ${topics[i % topics.length]} question (${diffLabel} Tier)?` },
                 correctAnswer: 'Correct Option',
                 incorrectAnswers: ['Distractor A', 'Distractor B', 'Distractor C'],
                 difficulty: difficulty === 'milestone_trigger' ? 'hard' : difficulty
             }));
         }
 
-        async function fetchNextBatchAndLoadQuestion() {
+        // Advance to next question (handles counter, state reset, batching, and milestone)
+        async function advanceToNextQuestion() {
             questionCount++;
-            questionCountDisplay.textContent = `${questionCount}/10+`;
+            questionCountDisplay.textContent = currentMode === 'arcade' ? `${questionCount}` : `${questionCount}/10+`;
             awaitingAnswer = true;
             feedbackText.textContent = '';
             nextBtn.disabled = true;
@@ -524,38 +560,42 @@
                 return;
             }
 
+            currentQuestionDifficulty = targetDifficulty;
             updateTierBadgeUI(targetDifficulty);
 
-            questionText.textContent = "Fetching fresh question...";
-            answerOptions.innerHTML = '';
+            // Fetch a new batch if cache is empty, exhausted, or difficulty tier changed
+            if (activeQuestionIndex >= currentTriviaQuestions.length || cachedDifficulty !== targetDifficulty) {
+                questionText.textContent = "Fetching fresh questions...";
+                answerOptions.innerHTML = '';
+                currentTriviaQuestions = await fetchQuestions(targetDifficulty, 5);
+                activeQuestionIndex = 0;
+                cachedDifficulty = targetDifficulty;
+            }
 
-            // Fetch a batch of questions to minimize network trips
-            const freshBatch = await fetchQuestions(targetDifficulty, 5);
-            currentTriviaQuestions = freshBatch;
-            activeQuestionIndex = 0;
-
-            loadActiveQuestionIntoUI();
+            renderActiveQuestion();
         }
 
         function updateTierBadgeUI(diff) {
             tierBadge.className = 'tier-badge';
-            if (diff === 'easy') { tierBadge.textContent = '● Easy Tier'; tierBadge.classList.add('tier-easy'); }
-            else if (diff === 'medium') { tierBadge.textContent = '▲ Medium Tier'; tierBadge.classList.add('tier-medium'); }
-            else if (diff === 'hard') { tierBadge.textContent = '★ Hard Tier'; tierBadge.classList.add('tier-hard'); }
+            if (inGauntlet) {
+                tierBadge.textContent = `⚔️ Gauntlet (${gauntletCurrentCount + 1}/${gauntletTargetCount})`;
+                tierBadge.classList.add('tier-hard');
+            } else if (diff === 'easy') {
+                tierBadge.textContent = '● Easy Tier';
+                tierBadge.classList.add('tier-easy');
+            } else if (diff === 'medium') {
+                tierBadge.textContent = '▲ Medium Tier';
+                tierBadge.classList.add('tier-medium');
+            } else if (diff === 'hard') {
+                tierBadge.textContent = '★ Hard Tier';
+                tierBadge.classList.add('tier-hard');
+            }
         }
 
-        function loadActiveQuestionIntoUI() {
-            if (activeQuestionIndex >= currentTriviaQuestions.length) {
-                // Batch exhausted, fetch next batch
-                fetchNextBatchAndLoadQuestion();
-                return;
-            }
-
+        function renderActiveQuestion() {
             const qData = currentTriviaQuestions[activeQuestionIndex];
-            const qTex = qData.question.text;
-            questionText.textContent = qTex;
+            questionText.textContent = qData.question.text;
 
-            // Combine and shuffle answers
             const allAnswers = [qData.correctAnswer, ...qData.incorrectAnswers].sort(() => Math.random() - 0.5);
 
             answerOptions.innerHTML = '';
@@ -564,7 +604,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.textContent = ans;
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     window.checkAnswer(btn, ans, qData.correctAnswer);
                 });
                 li.appendChild(btn);
@@ -580,20 +620,22 @@
             answerOptions.innerHTML = '';
 
             const isTwentieth = (questionCount === 20);
-            document.getElementById('milestone-title').textContent = isTwentieth ? '⚡ 20TH QUESTION MILESTONE ⚡' : '⚡ 10TH QUESTION MILESTONE ⚡';
-            
+            document.getElementById('milestone-title').textContent = isTwentieth
+                ? '⚡ 20TH QUESTION MILESTONE ⚡'
+                : `⚡ ${questionCount}TH QUESTION MILESTONE ⚡`;
+
             if (!isTwentieth) {
-                document.getElementById('milestone-desc').innerHTML = 
+                document.getElementById('milestone-desc').innerHTML =
                     "Option A: Take <b>+30 points</b> immediately and proceed.<br><br>" +
-                    "Option B: Play a <b>5-question Hard API gauntlet</b>. Complete it without losing your remaining lives to earn<b>+1 Extra Life</b>!";
+                    "Option B: Play a <b>5-question Hard API gauntlet</b>. Complete it without losing a life to earn <b>+1 Extra Life</b>!";
                 document.getElementById('milestone-safe-btn').textContent = "Take +30 Points Safely";
                 document.getElementById('milestone-challenge-btn').textContent = "Play 5-Question Hard Gauntlet (+1 Life)";
             } else {
-                document.getElementById('milestone-desc').innerHTML = 
+                document.getElementById('milestone-desc').innerHTML =
                     "Option A: Take <b>+30 points</b> immediately and proceed.<br><br>" +
-                    "Option B: Complete <b>5 Hard questions</b> to replace the standard Q1-Q5 cycle and earn<b>+1 Extra Life</b>!";
+                    "Option B: Complete <b>5 Hard questions</b> to replace the standard Q1-Q5 cycle and earn <b>+1 Extra Life</b>!";
                 document.getElementById('milestone-safe-btn').textContent = "Take +30 Points Safely";
-                document.getElementById('milestone-challenge-btn').textContent = "Accept 5-Question Hard Gauntlet";
+                document.getElementById('milestone-challenge-btn').textContent = "Accept 5-Question Hard Gauntlet (+1 Life)";
             }
 
             nextBtn.disabled = true;
@@ -605,16 +647,19 @@
             if (choice === 'safe') {
                 score += 30;
                 scoreDisplay.textContent = score;
+                scoreHistory.push([`M${questionCount}`, score, '#f59e0b']);
                 feedbackText.style.color = "var(--accent-green)";
                 feedbackText.textContent = "✓ +30 points added! Continuing journey...";
-                setTimeout(fetchNextBatchAndLoadQuestion, 2000);
+                setTimeout(advanceToNextQuestion, 1500);
             } else {
                 inGauntlet = true;
                 gauntletTargetCount = 5;
                 gauntletCurrentCount = 0;
+                currentTriviaQuestions = [];
+                cachedDifficulty = null;
                 feedbackText.style.color = "var(--accent-gold)";
                 feedbackText.textContent = "⚔️ HARD GAUNTLET INITIATED! Answer 5 Hard questions correctly!";
-                fetchNextBatchAndLoadQuestion();
+                setTimeout(advanceToNextQuestion, 1000);
             }
         }
 
@@ -636,8 +681,8 @@
                 streakCounter.textContent = `🔥 Streak: ${currentStreak}`;
 
                 let pointsEarned = 10;
-                if (determineCurrentDifficulty() === 'medium') pointsEarned = 15;
-                if (determineCurrentDifficulty() === 'hard') pointsEarned = 20;
+                if (currentQuestionDifficulty === 'medium') pointsEarned = 15;
+                if (currentQuestionDifficulty === 'hard') pointsEarned = 20;
 
                 score += pointsEarned;
                 scoreDisplay.textContent = score;
@@ -655,23 +700,27 @@
                         feedbackText.textContent = "🎉 GAUNTLET CLEARED! +1 Extra Life Awarded!";
                     }
                 }
-
             } else {
                 buttonElement.classList.add('wrong');
-                // Highlight correct answer
                 buttons.forEach(btn => {
                     if (btn.textContent === correctAnswer) btn.classList.add('correct');
                 });
 
                 currentStreak = 0;
                 streakCounter.textContent = `🔥 Streak: ${currentStreak}`;
-                lives--;
-                livesDisplay.textContent = lives;
+
+                if (currentMode === 'survival') {
+                    lives--;
+                    livesDisplay.textContent = lives;
+                }
 
                 if (inGauntlet) {
                     inGauntlet = false;
                     feedbackText.style.color = "var(--accent-red)";
                     feedbackText.textContent = "❌ Gauntlet Failed! Returning to normal path.";
+                } else if (currentMode === 'arcade') {
+                    feedbackText.style.color = "var(--accent-red)";
+                    feedbackText.textContent = "✗ Wrong Answer! Streak reset.";
                 } else {
                     feedbackText.style.color = "var(--accent-red)";
                     feedbackText.textContent = "✗ Wrong Answer! You lost a life.";
@@ -680,8 +729,8 @@
 
             scoreHistory.push([`Q${questionCount}`, score, '#8b5cf6']);
 
-            if (lives <= 0) {
-                setTimeout(endGameSession, 2000);
+            if (currentMode === 'survival' && lives <= 0) {
+                setTimeout(endGameSession, 1800);
             } else {
                 nextBtn.disabled = false;
             }
@@ -689,26 +738,32 @@
 
         nextBtn.addEventListener('click', () => {
             activeQuestionIndex++;
-            loadActiveQuestionIntoUI();
+            advanceToNextQuestion();
         });
 
         // Game Over Handler
         function endGameSession() {
+            milestoneModal.classList.add('hidden');
             gameContainer.classList.add('hidden');
             resultsScreen.classList.remove('hidden');
 
             document.getElementById('final-score').textContent = score;
             document.getElementById('final-streak').textContent = maxStreak;
 
+            if (typeof window.loadLeaderboard === 'function') {
+                window.loadLeaderboard();
+            }
+
             google.charts.load('current', {'packages':['corechart']});
             google.charts.setOnLoadCallback(drawChart);
         }
 
         function drawChart() {
-            if (scoreHistory.length <= 1) {
-                scoreHistory.push(['Q1', 0, '#8b5cf6']);
-            }
-            const data = google.visualization.arrayToDataTable(scoreHistory);
+            const chartData = scoreHistory.length > 1
+                ? scoreHistory
+                : [['Question', 'Score', { role: 'style' }], ['Q1', 0, '#8b5cf6']];
+
+            const data = google.visualization.arrayToDataTable(chartData);
             const options = {
                 title: 'Score Progression Run',
                 curveType: 'function',
@@ -718,7 +773,7 @@
                 hAxis: { textStyle: { color: '#94a3b8' } },
                 vAxis: { textStyle: { color: '#94a3b8' } },
                 colors: ['#8b5cf6'],
-                chartArea: { width: '80%', height: '70%' }
+                chartArea: { width: '82%', height: '70%' }
             };
             const chart = new google.visualization.LineChart(document.getElementById('chart_div'));
             chart.draw(data, options);
