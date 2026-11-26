@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-\<link rel="manifest" href="manifest.json"\>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DJ's Trivia Party - Global Platform</title>
@@ -779,11 +778,6 @@
             const chart = new google.visualization.LineChart(document.getElementById('chart_div'));
             chart.draw(data, options);
         }
- <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js');
-  }
-</script>
-
+    </script>
 </body>
 </html>
