@@ -1,4 +1,12 @@
 {
   "name": "DJ's Trivia Party",
-  "start_url": "https://ennisday21.github.io/Trivia-game-/index_random.html"
+  "display": "standalone",
+  "start_url": "https://ennisday21.github.io/Trivia-game-/index_random.html",
+  "icons": [
+    {
+      "src": "1000008849.png",
+      "type": "image/png",
+      "sizes": "1024x1536"
+    }
+  ]
 }
